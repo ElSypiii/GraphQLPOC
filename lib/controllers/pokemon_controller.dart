@@ -60,20 +60,6 @@ class PokemonController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetFilters() {
-    _searchQuery = '';
-    _filterType = null;
-    _updateFilteredPokemons();
-    notifyListeners();
-  }
-
-  void resetData() {
-    _allPokemons.clear();
-    _offset = 0;
-    _hasMore = true;
-    _updateFilteredPokemons();
-    notifyListeners();
-  }
 
   Set<String> getAllTypes() {
     return _pokemonService.getAllTypes(_allPokemons);
