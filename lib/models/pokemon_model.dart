@@ -40,7 +40,6 @@ class Pokemon {
       for (final typeData in json['pokemon_v2_pokemontypes']) {
         final typeName = typeData['pokemon_v2_type']['name'] as String?;
         if (typeName != null) {
-          // Capitalize the first letter of the type name
           types.add(typeName.capitalize());
         }
       }

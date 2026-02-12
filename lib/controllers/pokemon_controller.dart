@@ -17,14 +17,12 @@ class PokemonController extends ChangeNotifier {
     _filteredPokemons = _allPokemons;
   }
 
-  // Getters
   List<Pokemon> get pokemons => _filteredPokemons;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
   String get searchQuery => _searchQuery;
   String? get filterType => _filterType;
 
-  // Methods
   Future<void> loadMorePokemons({int limit = 50}) async {
     if (!_hasMore || _isLoading) return;
 
@@ -43,7 +41,6 @@ class PokemonController extends ChangeNotifier {
       _offset += limit;
       _hasMore = newPokemons.length == limit;
     } catch (e) {
-      // Handle error appropriately
       print('Error loading pokemons: $e');
     } finally {
       _isLoading = false;
