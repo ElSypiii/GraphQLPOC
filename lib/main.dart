@@ -5,6 +5,7 @@ import 'constants/app_constants.dart';
 import 'models/pokemon_model.dart';
 import 'services/pokemon_service.dart';
 import 'controllers/pokemon_controller.dart';
+import 'utils/type_color_utils.dart';
 
 void main() async {
   await initHiveForFlutter();
@@ -79,48 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Color getTypeColor(String typeName) {
-    switch (typeName.toLowerCase()) {
-      case 'normal':
-        return Colors.brown.shade300;
-      case 'fire':
-        return Colors.orange;
-      case 'water':
-        return Colors.blue;
-      case 'electric':
-        return Colors.yellow.shade700;
-      case 'grass':
-        return Colors.green;
-      case 'ice':
-        return Colors.cyan;
-      case 'fighting':
-        return Colors.red.shade800;
-      case 'poison':
-        return Colors.purple;
-      case 'ground':
-        return Colors.orange.shade800;
-      case 'flying':
-        return Colors.indigo;
-      case 'psychic':
-        return Colors.pink;
-      case 'bug':
-        return Colors.lightGreen;
-      case 'rock':
-        return Colors.yellow.shade800;
-      case 'ghost':
-        return Colors.purple.shade800;
-      case 'dragon':
-        return Colors.indigo.shade800;
-      case 'dark':
-        return Colors.brown.shade800;
-      case 'steel':
-        return Colors.grey.shade600;
-      case 'fairy':
-        return Colors.pink.shade300;
-      default:
-        return Colors.grey;
-    }
-  }
+  // This method is now available via TypeColorUtils
 
   void openDetails(BuildContext context, Pokemon pokemon) {
     Navigator.push(
@@ -218,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Text(
                                             t,
                                             style: TextStyle(
-                                              color: getTypeColor(t),
+                                              color: TypeColorUtils.getTypeColor(t),
                                             ),
                                           ),
                                         ))
@@ -353,48 +313,7 @@ class PokemonDetailsPage extends StatelessWidget {
   final Pokemon pokemon;
   const PokemonDetailsPage({required this.pokemon, Key? key}) : super(key: key);
 
-  Color _getTypeColor(String typeName) {
-    switch (typeName.toLowerCase()) {
-      case 'normal':
-        return Colors.brown.shade300;
-      case 'fire':
-        return Colors.orange;
-      case 'water':
-        return Colors.blue;
-      case 'electric':
-        return Colors.yellow.shade700;
-      case 'grass':
-        return Colors.green;
-      case 'ice':
-        return Colors.cyan;
-      case 'fighting':
-        return Colors.red.shade800;
-      case 'poison':
-        return Colors.purple;
-      case 'ground':
-        return Colors.orange.shade800;
-      case 'flying':
-        return Colors.indigo;
-      case 'psychic':
-        return Colors.pink;
-      case 'bug':
-        return Colors.lightGreen;
-      case 'rock':
-        return Colors.yellow.shade800;
-      case 'ghost':
-        return Colors.purple.shade800;
-      case 'dragon':
-        return Colors.indigo.shade800;
-      case 'dark':
-        return Colors.brown.shade800;
-      case 'steel':
-        return Colors.grey.shade600;
-      case 'fairy':
-        return Colors.pink.shade300;
-      default:
-        return Colors.grey;
-    }
-  }
+  // This method is now available via TypeColorUtils
 
   @override
   Widget build(BuildContext context) {
@@ -489,10 +408,10 @@ class PokemonDetailsPage extends StatelessWidget {
                               .map(
                                 (type) => Container(
                                   decoration: BoxDecoration(
-                                    color: _getTypeColor(type.toLowerCase()).withOpacity(0.2),
+                                    color: TypeColorUtils.getTypeColor(type.toLowerCase()).withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: _getTypeColor(type.toLowerCase()),
+                                      color: TypeColorUtils.getTypeColor(type.toLowerCase()),
                                       width: 1,
                                     ),
                                   ),
@@ -504,7 +423,7 @@ class PokemonDetailsPage extends StatelessWidget {
                                     child: Text(
                                       type,
                                       style: TextStyle(
-                                        color: _getTypeColor(type.toLowerCase()),
+                                        color: TypeColorUtils.getTypeColor(type.toLowerCase()),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
