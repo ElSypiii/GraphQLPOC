@@ -5,12 +5,14 @@ class Pokemon {
   final String name;
   final String? imageUrl;
   final List<String> types;
+  final List<String> moves;
 
   Pokemon({
     required this.id,
     required this.name,
     this.imageUrl,
     required this.types,
+    this.moves = const [],
   });
 
   factory Pokemon.fromJson(Map<String, dynamic> json) {
@@ -44,11 +46,22 @@ class Pokemon {
       }
     }
 
+    final moves = <String>[];
+    if (json['pokemon_v2_pokemonmoves'] != null) {
+      for (final moveData in json['pokemon_v2_pokemonmoves']) {
+        final moveName = moveData['pokemon_v2_move']['name'] as String?;
+        if (moveName != null) {
+          moves.add(moveName.split('-').map((word) => '${word[0].toUpperCase()}${word.substring(1)}').join(' '));
+        }
+      }
+    }
+
     return Pokemon(
       id: id ?? 0,
       name: name?.capitalize() ?? '',
       imageUrl: imageUrl,
       types: types,
+      moves: moves,
     );
   }
 }

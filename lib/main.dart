@@ -104,15 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.deepPurple,
         elevation: 4,
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              _controller.resetData();
-              _controller.loadMorePokemons();
-            },
-          ),
-        ],
       ),
       body: Container(
         color: Colors.deepPurple.shade50,
@@ -436,6 +427,55 @@ class PokemonDetailsPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                if (pokemon.moves.isNotEmpty)
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Moves',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.deepPurple.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: pokemon.moves.take(12).map((move) => 
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.deepPurple.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  move,
+                                  style: TextStyle(
+                                    color: Colors.deepPurple.shade800,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

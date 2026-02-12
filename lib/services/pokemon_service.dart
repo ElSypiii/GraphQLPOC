@@ -20,6 +20,11 @@ class PokemonService {
               name
             }
           }
+          pokemon_v2_pokemonmoves {
+            pokemon_v2_move {
+              name
+            }
+          }
         }
       }
     """;
