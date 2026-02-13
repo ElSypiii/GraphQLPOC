@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import '../constants/app_constants.dart';
 import '../models/pokemon_model.dart';
+import '../models/favorites_model.dart';
 import '../blocs/pokemon_bloc.dart';
 import '../services/pokemon_service.dart';
 import '../utils/type_color_utils.dart';
@@ -62,6 +63,14 @@ class _HomeViewState extends State<HomeView> {
               backgroundColor: Colors.deepPurple,
               elevation: 4,
               centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.favorite, color: Colors.white),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/favorites');
+                  },
+                ),
+              ],
             ),
             body: Container(
               color: Colors.deepPurple.shade50,
@@ -204,56 +213,86 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                   elevation: 4,
                                   color: Colors.white,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(kCardBorderRadius),
-                                    onTap: () => _openDetails(context, pokemon),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(kDefaultPadding),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Flexible(
-                                            child: pokemon.imageUrl != null
-                                                ? ClipRRect(
-                                                    borderRadius: BorderRadius.circular(12),
-                                                    child: Image.network(
-                                                      pokemon.imageUrl!,
-                                                      width: kImageSize,
-                                                      height: kImageSize,
-                                                      fit: BoxFit.contain,
-                                                      errorBuilder:
-                                                          (context, error, stack) => Icon(
-                                                        Icons.image_not_supported,
-                                                        size: kErrorIconSize,
-                                                        color: Colors.grey,
+                                  child: Stack(
+                                    children: [
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(kCardBorderRadius),
+                                        onTap: () => _openDetails(context, pokemon),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(kDefaultPadding),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: pokemon.imageUrl != null
+                                                    ? ClipRRect(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        child: Image.network(
+                                                          pokemon.imageUrl!,
+                                                          width: kImageSize,
+                                                          height: kImageSize,
+                                                          fit: BoxFit.contain,
+                                                          errorBuilder:
+                                                              (context, error, stack) => Icon(
+                                                            Icons.image_not_supported,
+                                                            size: kErrorIconSize,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : CircleAvatar(
+                                                        child: Text(
+                                                          pokemon.id.toString(),
+                                                        ),
+                                                        radius: kAvatarRadius,
                                                       ),
-                                                    ),
-                                                  )
-                                                : CircleAvatar(
-                                                    child: Text(
-                                                      pokemon.id.toString(),
-                                                    ),
-                                                    radius: kAvatarRadius,
-                                                  ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Flexible(
-                                            child: Text(
-                                              pokemon.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: kNameFontSize,
-                                                color: Colors.deepPurple,
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                              const SizedBox(height: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  pokemon.name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: kNameFontSize,
+                                                    color: Colors.deepPurple,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Consumer<FavoritesModel>(
+                                          builder: (context, favoritesModel, child) {
+                                            final isFavorite = favoritesModel.isFavorite(pokemon.id);
+                                            return GestureDetector(
+                                              onTap: () {
+                                                favoritesModel.toggleFavorite(pokemon);
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.8),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(
+                                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                                  color: isFavorite ? Colors.red : Colors.grey.shade800,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 );
                               },

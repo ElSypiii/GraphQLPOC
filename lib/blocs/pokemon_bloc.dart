@@ -1,7 +1,6 @@
 import 'dart:async';
 import '../models/pokemon_model.dart';
 import '../services/pokemon_service.dart';
-import '../constants/pokemon_bloc_constants.dart';
 
 class PokemonBloc {
   final PokemonService _pokemonService;
@@ -58,8 +57,8 @@ class PokemonBloc {
       if (query.isNotEmpty &&
           _hasMore &&
           !_isLoading &&
-          _filteredPokemons.length < PokemonBlocConstants.defaultLoadLimit) {
-        _loadMorePokemons(PokemonBlocConstants.defaultLoadLimit);
+          _filteredPokemons.length < 20) {
+        _loadMorePokemons(20);
       }
     });
 
@@ -102,7 +101,7 @@ class PokemonBloc {
   }
 
   Future<void> _loadMorePokemons([int? limit]) async {
-    final effectiveLimit = limit ?? PokemonBlocConstants.defaultLoadLimit;
+    final effectiveLimit = limit ?? 20;
     if (!_hasMore || _isLoading) return;
 
     _isLoading = true;
@@ -130,8 +129,8 @@ class PokemonBloc {
       // and there are more pokemons to fetch, trigger another load.
       if (_searchQuery.isNotEmpty &&
           _hasMore &&
-          _filteredPokemons.length < PokemonBlocConstants.defaultLoadLimit) {
-        _loadMoreController.sink.add(PokemonBlocConstants.defaultLoadLimit);
+          _filteredPokemons.length < 20) {
+        _loadMoreController.sink.add(20);
       }
     }
   }
