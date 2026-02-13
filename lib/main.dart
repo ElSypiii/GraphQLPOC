@@ -6,10 +6,11 @@ import 'services/pokemon_service.dart';
 import 'views/home_view.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await initHiveForFlutter();
   final HttpLink httpLink = HttpLink(kPokemonApiUrl);
 
-  ValueNotifier<GraphQLClient> client = ValueNotifier(
+  final ValueNotifier<GraphQLClient> client = ValueNotifier(
     GraphQLClient(
       link: httpLink,
       cache: GraphQLCache(store: HiveStore()),
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
   final ValueNotifier<GraphQLClient> client;
   final PokemonService pokemonService;
 
-  const MyApp({Key? key, required this.client, required this.pokemonService}) : super(key: key);
+  const MyApp({Key? key, required this.client, required this.pokemonService})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +35,7 @@ class MyApp extends StatelessWidget {
       client: client,
       child: Provider<PokemonService>.value(
         value: pokemonService,
-        child: MaterialApp(
-          home: HomeView(),
-          debugShowCheckedModeBanner: false, 
-        ),
+        child: MaterialApp(home: HomeView(), debugShowCheckedModeBanner: false),
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../constants/app_constants.dart';
 import '../models/pokemon_model.dart';
-import '../controllers/pokemon_controller.dart';
+import '../blocs/pokemon_bloc.dart';
 import '../services/pokemon_service.dart';
 import '../utils/type_color_utils.dart';
 import 'pokemon_details_view.dart';
@@ -15,39 +16,40 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late PokemonController _controller;
+  late PokemonBloc _pokemonBloc;
+  late ScrollController _scrollController;
+  final int _initialLoadLimit = 20;
 
   @override
   void initState() {
     super.initState();
     final pokemonService = Provider.of<PokemonService>(context, listen: false);
-    _controller = PokemonController(pokemonService);
-    _controller.addListener(_onControllerUpdate);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Load only 20 pokemons initially for better performance
-      _controller.loadMorePokemons(limit: 20);
-    });
+    _pokemonBloc = PokemonBloc(pokemonService);
+    _scrollController = ScrollController();
+    
+    _pokemonBloc.loadMoreSink.add(_initialLoadLimit);
+
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onControllerUpdate);
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _pokemonBloc.dispose();
     super.dispose();
   }
 
-  void _onControllerUpdate() {
-    if (mounted) {
-      setState(() {});
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 100) {
+      _pokemonBloc.loadMoreSink.add(_initialLoadLimit);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Consumer<PokemonController>(
-        builder: (context, controller, child) {
-          return Scaffold(
+    return Scaffold(
             appBar: AppBar(
               title: const Text(
                 kAppName,
@@ -97,80 +99,89 @@ class _HomeViewState extends State<HomeView> {
                             ),
                           ),
                           onChanged: (val) {
-                            controller.setSearchQuery(val);
+                            _pokemonBloc.searchSink.add(val);
                           },
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      isExpanded: true,
-                                      value: controller.filterType,
-                                      hint: const Text(
-                                        'Filter by Type',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                      items: controller.getAllTypes()
-                                          .map((t) => DropdownMenuItem(
-                                                value: t,
-                                                child: Text(
-                                                  t,
-                                                  style: TextStyle(
-                                                    color: TypeColorUtils.getTypeColor(t),
-                                                  ),
-                                                ),
-                                              ))
-                                          .toList(),
-                                      onChanged: (val) {
-                                        controller.setFilterType(val);
-                                      },
-                                      icon: Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.deepPurple,
+                        StreamBuilder<Set<String>>(
+                          stream: _pokemonBloc.typesStream,
+                          builder: (context, typesSnapshot) {
+                            final allTypes = typesSnapshot.data ?? <String>{};
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          isExpanded: true,
+                                          value: _pokemonBloc.currentFilterType,
+                                          hint: const Text(
+                                            'Filter by Type',
+                                            style: TextStyle(color: Colors.grey),
+                                          ),
+                                          items: allTypes
+                                              .map((t) => DropdownMenuItem(
+                                                    value: t,
+                                                    child: Text(
+                                                      t,
+                                                      style: TextStyle(
+                                                        color: TypeColorUtils.getTypeColor(t),
+                                                      ),
+                                                    ),
+                                                  ))
+                                              .toList(),
+                                          onChanged: (val) {
+                                            _pokemonBloc.filterSink.add(val);
+                                          },
+                                          icon: Icon(
+                                            Icons.arrow_drop_down,
+                                            color: Colors.deepPurple,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            if (controller.filterType != null)
-                              IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: Colors.deepPurple,
-                                ),
-                                onPressed: () {
-                                  controller.setFilterType(null);
-                                },
-                              ),
-                          ],
+                                if (_pokemonBloc.currentFilterType != null)
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: Colors.deepPurple,
+                                    ),
+                                    onPressed: () {
+                                      _pokemonBloc.filterSink.add(null);
+                                    },
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
                   Expanded(
-                    child: controller.pokemons.isEmpty && controller.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : NotificationListener<ScrollNotification>(
-                            onNotification: (scrollInfo) {
-                              if (controller.hasMore &&
-                                  !controller.isLoading &&
-                                  scrollInfo.metrics.pixels >=
-                                      scrollInfo.metrics.maxScrollExtent - 100) {
-                                controller.loadMorePokemons();
-                              }
-                              return false;
-                            },
-                            child: GridView.builder(
+                    child: StreamBuilder<List<Pokemon>>(
+                      stream: _pokemonBloc.pokemonsStream,
+                      builder: (context, pokemonsSnapshot) {
+                        if (!pokemonsSnapshot.hasData) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+
+                        final pokemons = pokemonsSnapshot.data ?? [];
+                        
+                        return StreamBuilder<bool>(
+                          stream: _pokemonBloc.loadingStream,
+                          builder: (context, loadingSnapshot) {
+                            final isLoading = loadingSnapshot.data ?? false;
+                            
+                            return GridView.builder(
+                              controller: _scrollController,
                               padding: const EdgeInsets.all(12),
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
@@ -179,14 +190,14 @@ class _HomeViewState extends State<HomeView> {
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
-                              itemCount: controller.pokemons.length + (controller.hasMore ? 1 : 0),
+                              itemCount: pokemons.length + (isLoading ? 1 : 0),
                               itemBuilder: (context, index) {
-                                if (index == controller.pokemons.length) {
+                                if (index == pokemons.length) {
                                   return const Center(
                                     child: CircularProgressIndicator(),
                                   );
                                 }
-                                final pokemon = controller.pokemons[index];
+                                final pokemon = pokemons[index];
                                 return Card(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(kCardBorderRadius),
@@ -246,16 +257,16 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                 );
                               },
-                            ),
-                          ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
             ),
           );
-        },
-      ),
-    );
   }
 
   void _openDetails(BuildContext context, Pokemon pokemon) {
